@@ -15,7 +15,7 @@ This package holds the header menus that every Binom app (Chat, Meet, Ideas, Cal
 **Account menu** (`<binom-account-menu>`) opens from the user's photo at the right. It contains:
 - a profile card: photo with a camera badge, name and email (the team is in the team switcher);
 - **Credits**: a click opens the team's Billing page in Binom Account, as in Meet; payers also get a **+**;
-- **Manage team**, **Settings**, the app's own rows, **Switch account** (sign in as another Binom account) and **Sign out**;
+- **Manage team**, the app's own rows, **Settings**, **Switch account** (sign in as another Binom account) and **Sign out**;
 - the app's version.
 
 Both are custom elements with a Shadow DOM and no dependencies, built the same way as the app switcher `<binom-switcher>` (`https://binom.com/switcher/v1.js`). Both have React wrappers, `AccountMenu` and `TeamSwitcher`.

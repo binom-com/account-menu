@@ -15,7 +15,7 @@ Every Binom app has the same header:
 | --- | --- | --- |
 | `<binom-switcher>` | `https://binom.com/switcher/v1.js`, a script tag | Lists the Binom apps and Help & support. Not part of this package. |
 | `<binom-team-switcher>` | this package | Shows the open team. Its list holds every team of the user and **Create team**. |
-| `<binom-account-menu>` | this package | Opens from the user's photo: profile, credits, Manage team, Settings, your own rows, Switch account, Sign out, version. |
+| `<binom-account-menu>` | this package | Opens from the user's photo: profile, credits, Manage team, your own rows, Settings, Switch account, Sign out, version. |
 
 Teams are switched only in the team switcher, never in the account menu. **Switch account** in the account menu is something else: it signs in as another Binom account (another Google account). Like a project in Google Cloud's header or a workspace in Railway's, the open team stands after the app's name.
 
@@ -59,8 +59,8 @@ React apps import the wrappers instead (`@binom/account-menu/react`), which load
 | 2 | **Credits**: the balance, `Unlimited` or a spinner | `credits` | The whole row is a button, as in Meet, and opens the team's Billing page in Binom Account. Every member may see that page (the balance; payers also buy there). With `can-top-up` the row ends in a **+**. While loading, or with `credits-readonly`, the row is text only. |
 | — | Your rows with `slot="start"` | — | Your own `onClick`. |
 | 3 | **Manage team** (shown only when there is a team) | `manage-team` | The team's members page in Binom Account. |
-| 4 | **Settings** | `settings` | None: open your settings. |
 | — | Your rows (no slot) | — | Your own `onClick`. |
+| 4 | **Settings** | `settings` | None: open your settings. |
 | 5 | **Switch account** | `switch-account` | None: sign in as another Binom account (see below). |
 | 6 | **Sign out** | `sign-out` | None: sign the user out. |
 | 7 | `Version X` | — | Shown only when `version` is set. |

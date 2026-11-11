@@ -111,7 +111,7 @@ test('Escape closes the menu, arrows move through every row including the app it
   const menu = mount({ ...USER, ...TEAM }, '<button id="own">Own</button>');
   menu.open();
   assert.deepEqual(menu.items().map((el) => el.dataset?.item ?? el.id), [
-    'photo', 'manage-team', 'settings', 'own', 'switch-account', 'sign-out',
+    'photo', 'manage-team', 'own', 'settings', 'switch-account', 'sign-out',
   ]);
   document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' }));
   assert.equal(menu.isOpen, false);

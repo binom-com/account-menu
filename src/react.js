@@ -55,7 +55,7 @@ const hideAttribute = (hide) => (hide?.length ? hide.join(' ') : undefined);
 
 /**
  * The Binom account menu for React apps. Extra rows are its children: plain `<button>`s or `<a>`s,
- * `slot="start"` for those right after the credits, no slot for those after Settings. `ref` is the element
+ * `slot="start"` for those right after the credits, no slot for those before Settings. `ref` is the element
  * (`open()`, `close()`, `isOpen`). `onSelect(item, event)`.
  */
 export const AccountMenu = forwardRef(function AccountMenu(

@@ -3,14 +3,14 @@
  *
  * One user menu for the right corner of every Binom app (Chat, Meet, Ideas, Calendar, Synergy). The user's photo
  * (or initials) opens a menu: the profile card (photo with a camera badge, name, email), the team's credits
- * (a click opens the team's Billing page in Binom Account for every member, a + for payers), Manage team, Settings, the app's own rows, Switch account (sign in as
+ * (a click opens the team's Billing page in Binom Account for every member, a + for payers), Manage team, the app's own rows, Settings, Switch account (sign in as
  * another Binom account), Sign out and the app's version. Teams are switched in <binom-team-switcher>, beside the
  * app's name on the left.
  *
  *   <binom-account-menu user-name="Design Check" user-email="dc@example.test"
  *     team-id="t_1" credits="1250" can-top-up account-url="https://account.binom.com" version="1.4.0">
  *     <button slot="start">…</button>  (the app's rows after the credits)
- *     <button>…</button>               (the app's rows after Settings)
+ *     <button>…</button>               (the app's rows after Manage team, before Settings)
  *   </binom-account-menu>
  *
  * Every built-in row fires `binom-account-menu-select` (bubbles, composed, cancelable; detail { item, url }).
@@ -114,8 +114,8 @@ class BinomAccountMenu extends PopupMenu {
       this.creditsHtml() +
       '<slot name="start"></slot>' +
       (this.getAttribute('team-id') ? this.rowHtml('manage-team', 'users') : '') +
-      this.rowHtml('settings', 'settings') +
       '<slot></slot>' +
+      this.rowHtml('settings', 'settings') +
       this.rowHtml('switch-account', 'switchAccount') +
       this.rowHtml('sign-out', 'signOut') +
       (version ? `<div class="version">${esc(`${this.label('version')} ${version}`)}</div>` : '');

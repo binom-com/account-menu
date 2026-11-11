@@ -38,7 +38,7 @@ export interface AccountMenuProps {
   /** The menu opened (true) or closed (false), e.g. to let the system Back close it on a phone. */
   onOpenChange?(isOpen: boolean): void;
   className?: string;
-  /** Your own rows: `<button>` or `<a>`; `slot="start"` puts one after the credits, otherwise after Settings. */
+  /** Your own rows: `<button>` or `<a>`; `slot="start"` puts one after the credits, otherwise before Settings. */
   children?: ReactNode;
 }
 
