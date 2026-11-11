@@ -11,12 +11,16 @@ globalThis.IS_REACT_ACT_ENVIRONMENT = true;
 test('AccountMenu sets the attributes and calls onSelect', async () => {
   document.body.innerHTML = '<div id="root"></div>';
   const chosen = [];
+  const openings = [];
+  const ref = { current: null };
   const root = createRoot(document.getElementById('root'));
   await act(async () => {
     root.render(
       createElement(
         AccountMenu,
         {
+          ref,
+          onOpenChange: (isOpen) => openings.push(isOpen),
           user: { name: 'Design Check', email: 'dc@example.test' },
           team: { name: 'Team', id: 't1' },
           credits: 0,
@@ -39,7 +43,10 @@ test('AccountMenu sets the attributes and calls onSelect', async () => {
   assert.equal(menu.getAttribute('hide'), 'switch-account');
   assert.equal(menu.getAttribute('label-settings'), 'Настройки');
   assert.equal(menu.querySelector('button[slot="start"]').textContent, 'Vault');
+  assert.equal(ref.current, menu);
+  menu.open();
   menu.shadowRoot.querySelector('[data-item="settings"]').click();
   assert.deepEqual(chosen, ['settings']);
+  assert.deepEqual(openings, [true, false]);
   await act(async () => root.unmount());
 });

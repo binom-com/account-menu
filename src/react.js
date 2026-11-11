@@ -1,9 +1,11 @@
 // React wrapper of <binom-account-menu>: typed props instead of attributes, and `onSelect` for the select event
 // (React 18 passes no custom events to JSX). The element itself is in ./account-menu.js.
-import { createElement, useEffect, useRef } from 'react';
+import { createElement, forwardRef, useEffect, useRef } from 'react';
 import './account-menu.js';
 
 const SELECT_EVENT = 'binom-account-menu-select';
+const OPEN_EVENT = 'binom-account-menu-open';
+const CLOSE_EVENT = 'binom-account-menu-close';
 
 /** `credits`: a number, `'unlimited'` or `'loading'`; null or undefined hides the row. */
 function creditsAttribute(credits) {
@@ -30,9 +32,10 @@ function labelAttributes(labels) {
 
 /**
  * The Binom account menu for React apps. Extra items are its children: plain `<button>`s or `<a>`s,
- * `slot="start"` for those right after the credits, no slot for those after Settings.
+ * `slot="start"` for those right after the credits, no slot for those after Settings. `ref` is the element
+ * (`open()`, `close()`, `isOpen`).
  */
-export function AccountMenu({
+export const AccountMenu = forwardRef(function AccountMenu({
   user,
   team,
   credits,
@@ -45,24 +48,39 @@ export function AccountMenu({
   size,
   isPhotoBusy,
   onSelect,
+  onOpenChange,
   className,
   children,
-}) {
+}, forwardedRef) {
   const ref = useRef(null);
-  const onSelectRef = useRef(onSelect);
-  onSelectRef.current = onSelect;
+  const handlers = useRef({ onSelect, onOpenChange });
+  handlers.current = { onSelect, onOpenChange };
 
   useEffect(() => {
     const element = ref.current;
-    const listener = (event) => onSelectRef.current?.(event.detail.item, event);
-    element.addEventListener(SELECT_EVENT, listener);
-    return () => element.removeEventListener(SELECT_EVENT, listener);
+    const select = (event) => handlers.current.onSelect?.(event.detail.item, event);
+    const opened = () => handlers.current.onOpenChange?.(true);
+    const closed = () => handlers.current.onOpenChange?.(false);
+    element.addEventListener(SELECT_EVENT, select);
+    element.addEventListener(OPEN_EVENT, opened);
+    element.addEventListener(CLOSE_EVENT, closed);
+    return () => {
+      element.removeEventListener(SELECT_EVENT, select);
+      element.removeEventListener(OPEN_EVENT, opened);
+      element.removeEventListener(CLOSE_EVENT, closed);
+    };
   }, []);
+
+  const setRef = (element) => {
+    ref.current = element;
+    if (typeof forwardedRef === 'function') forwardedRef(element);
+    else if (forwardedRef) forwardedRef.current = element;
+  };
 
   return createElement(
     'binom-account-menu',
     {
-      ref,
+      ref: setRef,
       class: className,
       'user-name': user.name,
       'user-email': user.email ?? undefined,
@@ -83,4 +101,4 @@ export function AccountMenu({
     },
     children,
   );
-}
+});

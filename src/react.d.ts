@@ -1,7 +1,7 @@
-import type { ReactNode } from 'react';
-import type { AccountMenuItem, AccountMenuLabel, AccountMenuSelectEvent } from './account-menu.js';
+import type { ForwardRefExoticComponent, ReactNode, RefAttributes } from 'react';
+import type { AccountMenuItem, AccountMenuLabel, AccountMenuSelectEvent, BinomAccountMenuElement } from './account-menu.js';
 
-export type { AccountMenuItem, AccountMenuLabel, AccountMenuSelectEvent } from './account-menu.js';
+export type { AccountMenuItem, AccountMenuLabel, AccountMenuSelectEvent, BinomAccountMenuElement } from './account-menu.js';
 
 export interface AccountMenuProps {
   user: { name: string; email?: string | null; photoUrl?: string | null; id?: string | null };
@@ -24,9 +24,11 @@ export interface AccountMenuProps {
   isPhotoBusy?: boolean;
   /** Call `event.preventDefault()` to open a Binom Account page your own way (a new tab, the system browser). */
   onSelect?(item: AccountMenuItem, event: AccountMenuSelectEvent): void;
+  /** The menu opened (true) or closed (false), e.g. to let the system Back close it on a phone. */
+  onOpenChange?(isOpen: boolean): void;
   className?: string;
   /** Your own items: `<button>` or `<a>`; `slot="start"` puts one after the credits, otherwise after Settings. */
   children?: ReactNode;
 }
 
-export function AccountMenu(props: AccountMenuProps): ReactNode;
+export const AccountMenu: ForwardRefExoticComponent<AccountMenuProps & RefAttributes<BinomAccountMenuElement>>;
