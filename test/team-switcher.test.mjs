@@ -20,6 +20,13 @@ test('the button shows the open team: its logo, name and the other teams’ unre
   assert.equal($(el, '.trigger').getAttribute('aria-label'), 'Teams: Team example.test');
 });
 
+test('a team logo that does not load is dropped, the name stays', () => {
+  const el = switcher();
+  $(el, '.trigger img.mark').dispatchEvent(new Event('error'));
+  assert.equal($(el, '.trigger img.mark'), null);
+  assert.equal($(el, '.trigger-name').textContent, 'Team example.test');
+});
+
 test('a team without a logo gets its initials on its own hue', () => {
   const el = switcher({ 'team-id': 't3' });
   assert.equal($(el, '.trigger .mark--tinted').textContent, 'GC');

@@ -22,7 +22,7 @@ test('AccountMenu sets the attributes and calls onSelect', async () => {
           ref,
           onOpenChange: (isOpen) => openings.push(isOpen),
           user: { name: 'Design Check', email: 'dc@example.test' },
-          team: { name: 'Team', id: 't1' },
+          teamId: 't1',
           credits: 0,
           canTopUp: true,
           version: '1.0.0',

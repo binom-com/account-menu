@@ -14,12 +14,14 @@ export type * from './index.js';
 
 export interface AccountMenuProps {
   user: { name: string; email?: string | null; photoUrl?: string | null; id?: string | null };
-  /** The open team; `id` builds the Billing and Manage team links to Binom Account. */
-  team?: { name: string; id?: string | null; logoUrl?: string | null } | null;
+  /** The open team's id: builds the Billing and Manage team links; without it there is no Manage team. */
+  teamId?: string | null;
   /** The team's balance, `'unlimited'`, or `'loading'` (a spinner); null or undefined hides the row. */
   credits?: number | 'unlimited' | 'loading' | null;
-  /** The owner, admins and billing members: the credits row opens Billing. */
+  /** The owner, admins and billing members on a team that is not unlimited: a + at the end of the credits row. */
   canTopUp?: boolean;
+  /** The credits row only shows the balance, no click (e.g. an Android app: Google Play allows no other payments). */
+  isCreditsReadOnly?: boolean;
   /** Binom Account's address, e.g. `https://account.binom.com`. */
   accountUrl?: string | null;
   version?: string | null;

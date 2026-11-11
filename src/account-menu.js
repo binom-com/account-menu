@@ -2,11 +2,12 @@
  * Binom account menu — <binom-account-menu>
  *
  * One user menu for the right corner of every Binom app (Chat, Meet, Ideas, Calendar, Synergy). The user's photo
- * (or initials) opens a menu: the profile card (photo with a camera badge, name, email, team), the team's credits
- * (a click opens Billing in Binom Account), Manage team, Settings, the app's own rows, Sign out and the app's
- * version. Teams are switched in <binom-team-switcher>, beside the app's name on the left.
+ * (or initials) opens a menu: the profile card (photo with a camera badge, name, email), the team's credits
+ * (a click opens the team's Billing page in Binom Account for every member, a + for payers), Manage team, Settings, the app's own rows, Switch account (sign in as
+ * another Binom account), Sign out and the app's version. Teams are switched in <binom-team-switcher>, beside the
+ * app's name on the left.
  *
- *   <binom-account-menu user-name="Design Check" user-email="dc@example.test" team-name="Team example"
+ *   <binom-account-menu user-name="Design Check" user-email="dc@example.test"
  *     team-id="t_1" credits="1250" can-top-up account-url="https://account.binom.com" version="1.4.0">
  *     <button slot="start">…</button>  (the app's rows after the credits)
  *     <button>…</button>               (the app's rows after Settings)
@@ -30,6 +31,7 @@ const LABELS = {
   'top-up': 'Top up credits',
   'manage-team': 'Manage team',
   settings: 'Settings',
+  'switch-account': 'Switch account',
   'sign-out': 'Sign out',
   version: 'Version',
   menu: 'Account menu',
@@ -49,15 +51,12 @@ const CSS = [
   // The header button: a round photo inside a tap-sized target; the focus ring hugs the avatar.
   '.trigger{min-width:var(--tap-size);border-radius:50%}',
   '.trigger:focus-visible .avatar{box-shadow:0 0 0 3px var(--color-focus-ring)}',
-  // The profile card: the photo (a click changes it), name, email and the open team.
+  // The profile card: the photo (a click changes it), name and email. The team is in <binom-team-switcher>.
   '.who{display:flex;align-items:center;gap:12px;padding:6px 10px 10px;margin-bottom:4px;border-bottom:1px solid var(--color-border);line-height:1.3}',
   '.who-text{display:flex;flex-direction:column;min-width:0}',
   '.who-text>*{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}',
   '.name{font-weight:600}',
   '.email{color:var(--color-muted);font-size:.875rem}',
-  '.team{display:flex;align-items:center;gap:6px;margin-top:6px;font-weight:600}',
-  '.team-name{min-width:0;overflow:hidden;text-overflow:ellipsis}',
-  '.team-logo{flex:none;width:18px;height:18px;border-radius:var(--radius-xs);object-fit:cover}',
   '.photo{position:relative;flex:none;appearance:none;padding:0;border:0;border-radius:50%;background:none;cursor:pointer;line-height:0;--bam-size:44px}',
   '.photo .avatar{font-size:15px}',
   '.photo:disabled{cursor:default}',
@@ -78,8 +77,8 @@ class BinomAccountMenu extends PopupMenu {
   static align = 'end';
   static labels = LABELS;
   static observedAttributes = [
-    'user-name', 'user-email', 'user-photo', 'user-id', 'team-name', 'team-logo', 'team-id', 'credits', 'can-top-up',
-    'account-url', 'version', 'hide', 'size', 'photo-busy',
+    'user-name', 'user-email', 'user-photo', 'user-id', 'team-id', 'credits', 'can-top-up',
+    'account-url', 'version', 'hide', 'size', 'photo-busy', 'credits-readonly',
     ...Object.keys(LABELS).map((id) => `label-${id}`),
     ...BADGED.flatMap((id) => [`badge-${id}`, `badge-${id}-muted`, `badge-${id}-label`]),
   ];
@@ -110,31 +109,27 @@ class BinomAccountMenu extends PopupMenu {
 
   menuHtml() {
     // Manage team needs a team, unless the app handles the click itself.
-    const hasTeam = !!(this.getAttribute('team-id') || this.getAttribute('team-name'));
     const version = this.getAttribute('version');
     return this.whoHtml() +
       this.creditsHtml() +
       '<slot name="start"></slot>' +
-      (hasTeam ? this.rowHtml('manage-team', 'users') : '') +
+      (this.getAttribute('team-id') ? this.rowHtml('manage-team', 'users') : '') +
       this.rowHtml('settings', 'settings') +
       '<slot></slot>' +
+      this.rowHtml('switch-account', 'switchAccount') +
       this.rowHtml('sign-out', 'signOut') +
       (version ? `<div class="version">${esc(`${this.label('version')} ${version}`)}</div>` : '');
   }
 
   whoHtml() {
-    const teamName = this.getAttribute('team-name');
-    const teamLogo = this.getAttribute('team-logo');
     const busy = this.hasAttribute('photo-busy');
     const photoLabel = esc(this.label('photo'));
     const photo = this.isHidden('photo')
       ? `<span class="photo">${this.avatar()}</span>`
       : `<button type="button" class="photo" data-item="photo" aria-label="${photoLabel}" title="${photoLabel}"${busy ? ' disabled aria-busy="true"' : ''}>` +
         `${this.avatar()}<span class="badge" aria-hidden="true">${icon('camera', 12)}</span></button>`;
-    const logo = teamLogo ? `<img class="team-logo" src="${esc(teamLogo)}" alt="" data-drop-on-error>` : '';
-    const team = teamName ? `<span class="team">${logo}<span class="team-name">${esc(teamName)}</span></span>` : '';
     return `<div class="who">${photo}<div class="who-text"><span class="name">${esc(this.getAttribute('user-name'))}</span>` +
-      `<span class="email">${esc(this.getAttribute('user-email'))}</span>${team}</div></div>`;
+      `<span class="email">${esc(this.getAttribute('user-email'))}</span></div></div>`;
   }
 
   creditsHtml() {
@@ -144,10 +139,13 @@ class BinomAccountMenu extends PopupMenu {
       ? `<span class="spinner" role="status" aria-label="${esc(this.label('loading'))}"></span>`
       : esc(credits === 'unlimited' ? this.label('unlimited') : credits.toLocaleString('en-US'));
     const start = `${icon('coins', 18)}<span class="label">${esc(this.label('credits'))}</span><span class="value">${value}</span>`;
+    // Every member may see the team's Billing page (the balance; payers also buy there), so the row opens it,
+    // like Meet's credits. Only the + is for payers; `credits-readonly` (a store app) keeps the row text.
+    if (credits === 'loading' || this.hasAttribute('credits-readonly')) return `<div class="item credits">${start}</div>`;
     const canTopUp = typeof credits === 'number' && this.hasAttribute('can-top-up');
-    if (!canTopUp) return `<div class="item credits">${start}</div>`;
-    return `<button type="button" class="item credits" role="menuitem" data-item="credits" title="${esc(this.label('top-up'))}">` +
-      `${start}<span class="top-up" aria-hidden="true">${icon('plus', 16)}</span></button>`;
+    const topUp = canTopUp ? `<span class="top-up" aria-hidden="true">${icon('plus', 16)}</span>` : '';
+    return `<button type="button" class="item credits" role="menuitem" data-item="credits"${canTopUp ? ` title="${esc(this.label('top-up'))}"` : ''}>` +
+      `${start}${topUp}</button>`;
   }
 
   /** `badge-<id>`: a count after the label; `-muted` greys it, `-label` is its text for screen readers. */

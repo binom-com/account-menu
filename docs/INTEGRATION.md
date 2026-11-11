@@ -15,9 +15,9 @@ Every Binom app has the same header:
 | --- | --- | --- |
 | `<binom-switcher>` | `https://binom.com/switcher/v1.js`, a script tag | Lists the Binom apps and Help & support. Not part of this package. |
 | `<binom-team-switcher>` | this package | Shows the open team. Its list holds every team of the user and **Create team**. |
-| `<binom-account-menu>` | this package | Opens from the user's photo: profile, credits, Manage team, Settings, your own rows, Sign out, version. |
+| `<binom-account-menu>` | this package | Opens from the user's photo: profile, credits, Manage team, Settings, your own rows, Switch account, Sign out, version. |
 
-Teams are switched only in the team switcher, never in the account menu. Like a project in Google Cloud's header or a workspace in Railway's, the open team stands after the app's name.
+Teams are switched only in the team switcher, never in the account menu. **Switch account** in the account menu is something else: it signs in as another Binom account (another Google account). Like a project in Google Cloud's header or a workspace in Railway's, the open team stands after the app's name.
 
 Both elements:
 
@@ -55,33 +55,45 @@ React apps import the wrappers instead (`@binom/account-menu/react`), which load
 
 | # | Row | `item` id | Default action (when you do not call `preventDefault()`) |
 | --- | --- | --- | --- |
-| 1 | Profile card: photo with a camera badge, name, email, team (logo + name) | `photo` (the photo) | Opens Profile in Binom Account. The menu stays open. |
-| 2 | **Credits**: the balance, `Unlimited` or a spinner | `credits` | When `can-top-up` is set, the whole row is a button with a **+** that opens the team's Billing page. Without it the row is read-only. |
+| 1 | Profile card: photo with a camera badge, name, email (no team: it is in the team switcher) | `photo` (the photo) | Opens Profile in Binom Account. The menu stays open. |
+| 2 | **Credits**: the balance, `Unlimited` or a spinner | `credits` | The whole row is a button, as in Meet, and opens the team's Billing page in Binom Account. Every member may see that page (the balance; payers also buy there). With `can-top-up` the row ends in a **+**. While loading, or with `credits-readonly`, the row is text only. |
 | — | Your rows with `slot="start"` | — | Your own `onClick`. |
 | 3 | **Manage team** (shown only when there is a team) | `manage-team` | The team's members page in Binom Account. |
 | 4 | **Settings** | `settings` | None: open your settings. |
 | — | Your rows (no slot) | — | Your own `onClick`. |
-| 5 | **Sign out** | `sign-out` | None: sign the user out. |
-| 6 | `Version X` | — | Shown only when `version` is set. |
+| 5 | **Switch account** | `switch-account` | None: sign in as another Binom account (see below). |
+| 6 | **Sign out** | `sign-out` | None: sign the user out. |
+| 7 | `Version X` | — | Shown only when `version` is set. |
 
 ### Attributes and React props
 
 | Attribute | React prop | Meaning |
 | --- | --- | --- |
 | `user-name`, `user-email`, `user-photo`, `user-id` | `user={{ name, email, photoUrl, id }}` | Without a photo the avatar shows initials on a pastel; `user-id` (else the name) picks the hue, so a person has the same colour in every app. |
-| `team-name`, `team-logo`, `team-id` | `team={{ name, logoUrl, id }}` | The profile card's team. `team-id` builds the Billing and Manage team links. A logo that fails to load is dropped. |
+| `team-id` | `teamId` | The open team: it builds the Billing and Manage team links; without it there is no Manage team. The team's name and logo are not in this menu but in the team switcher. |
 | `credits` | `credits` | A number, `unlimited` or `loading`. With no value the row is hidden (use that when the balance could not be read). |
-| `can-top-up` | `canTopUp` | The owner, admins and billing members, and only on a team that is not unlimited. Leave it out in an Android app, where Google Play allows no payments elsewhere. |
+| `can-top-up` | `canTopUp` | Show the **+**: the owner, admins and billing members, and only on a team that is not unlimited. |
+| `credits-readonly` | `isCreditsReadOnly` | The credits row is text, with no click. Use it only where the app may not lead to payments: an Android app, where Google Play allows no payments elsewhere. |
 | `account-url` | `accountUrl` | Binom Account's address (`https://account.binom.com`). Without it, the photo, credits and Manage team rows only fire the event. |
 | `version` | `version` | The app's version. |
-| `hide` | `hide={['manage-team']}` | Built-in rows to drop, by id: `photo`, `credits`, `manage-team`, `settings`, `sign-out`. |
-| `label-<id>` | `labels={{ settings: 'Настройки' }}` | Your text for `photo`, `credits`, `unlimited`, `top-up`, `manage-team`, `settings`, `sign-out`, `version`, `menu` (the trigger is named `<menu> — <name>`) or `loading`. |
+| `hide` | `hide={['manage-team']}` | Built-in rows to drop, by id: `photo`, `credits`, `manage-team`, `settings`, `switch-account`, `sign-out`. |
+| `label-<id>` | `labels={{ settings: 'Настройки' }}` | Your text for `photo`, `credits`, `unlimited`, `top-up`, `manage-team`, `settings`, `switch-account`, `sign-out`, `version`, `menu` (the trigger is named `<menu> — <name>`) or `loading`. |
 | `badge-<id>`, `-muted`, `-label` | `badges={{ settings: { count, isMuted, label } }}` | A count on `manage-team` or `settings` (99+ above 99). |
 | `size` | `size` | The header avatar in px (default 32; Chat uses 40 on a phone). The tap target stays at least `--tap-size`. |
 | `photo-busy` | `isPhotoBusy` | A new photo is uploading; the photo is disabled. |
 | — | `onSelect(item, event)` | The select event. |
 | — | `onOpenChange(isOpen)` | The open and close events. |
 | — | `ref` | The element: `open()`, `close(toButton?)`, `toggle()`, `isOpen`. |
+
+### Switch account
+
+Binom Account shows Google's account chooser on every sign-in (`prompt=select_account`), but it skips the chooser while its own session is alive. So **Switch account** has to:
+
+1. End Binom Account's session. Either call `GET {auth-url}/auth/logout` with `fetch(…, { credentials: 'include' })`, which answers JSON and clears its cookie (the app's origin must be one Binom Account allows), or send the browser to `/auth/logout?host=<app host>`, which returns to the app's site.
+2. End the app's own session.
+3. Start the app's normal sign-in. Binom Account then sends the user to Google's chooser, so they can pick another account or add one.
+
+Meet does this in `AuthManager.switchAccount()`, Chat in `useSession().switchAccount()`. If step 1 fails, fall back to a plain sign-out; never sign the same person straight back in silently.
 
 ### Events
 
@@ -155,12 +167,12 @@ Where the data comes from (your server asks Binom Account with the app's key, `A
 2. In the header: `<binom-switcher app="<app>">`, the app's name, a slash, then `<TeamSwitcher>` on the left; `<AccountMenu>` at the right end.
 3. Remove the app's old avatar menu, its team picker or `<select>`, and any separate credits pill (Meet's `UsageBadge`). They live in these menus now.
 4. Account menu:
-   - Pass the user, team, `credits` (`'loading'` until the first answer, no value on an error) and `canTopUp`.
+   - Pass the user, `teamId`, `credits` (`'loading'` until the first answer, no value on an error), `canTopUp` (the +) and, in a store app only, `isCreditsReadOnly`.
    - Pass `accountUrl`, `version`, and labels if the app is not in English.
-   - In `onSelect`, handle `settings` and `sign-out`. For `photo`, `credits` and `manage-team`, keep the default or call `preventDefault()` and open the page yourself.
+   - In `onSelect`, handle `settings`, `switch-account` (section 3, Switch account) and `sign-out`. For `photo`, `credits` and `manage-team`, keep the default or call `preventDefault()` and open the page yourself.
 5. Team switcher: pass `teams` with roles (and unread counts if you have them) and `teamId`; open the chosen team in `onSelect`.
 6. Add the app's own rows as children.
-7. Hide what the app cannot do: `hide={['manage-team']}` and `hide={['create']}` without Binom Account, and no `canTopUp` in a store app.
+7. Hide what the app cannot do: `hide={['manage-team']}` and `hide={['create']}` without Binom Account, and `isCreditsReadOnly` (no `canTopUp`) in a store app.
 8. In tests: the built-in rows are in the shadow root. With Testing Library use `within(element.shadowRoot)`; built-in rows have the role `menuitem`, while the photo and the triggers are `button`. Your own rows are in the light DOM, so `screen` finds them.
 9. Update your app's user help and README in the same change.
 
@@ -177,8 +189,8 @@ Chat (`binom-com/chat`) wires the elements in these files:
 - `apps/ui/src/features/account/UserMenu.tsx`:
   - `onSelect` always calls `preventDefault()`.
   - `photo` opens Chat's picker and crop dialog (`isPhotoBusy` while uploading).
-  - `credits` and `manage-team` open Billing and Members through Chat's `useAccountPages`.
-  - `settings` opens the Settings dialog, and `sign-out` calls `signOut()`.
+  - `credits` (every role; read-only only in the Android app) and `manage-team` open Billing and Members through Chat's `useAccountPages`.
+  - `settings` opens the Settings dialog, `switch-account` calls `switchAccount()` (Binom Account's session ended, then a new sign-in with Google's account chooser), and `sign-out` calls `signOut()`.
   - The children are Vault (owners and admins), Import chats, Watch demo and Download app.
   - All labels come from Chat's `strings`.
 - Tests:

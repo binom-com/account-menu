@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { $, $$, mount, rows } from './setup.mjs';
 
 const USER = { 'user-name': 'Design Check', 'user-email': 'design-check@example.test', 'user-id': 'u1' };
-const TEAM = { 'team-name': 'Team example.test', 'team-id': 't 1' };
+const TEAM = { 'team-id': 't 1' };
 
 test('the avatar shows initials without a photo, the photo with one', () => {
   const menu = mount(USER);
@@ -16,8 +16,8 @@ test('the menu lists the profile card and every built-in item in order, with the
   const menu = mount({ ...USER, ...TEAM, credits: '1250', 'can-top-up': '', version: '2.3.0' });
   assert.equal($(menu, '.name').textContent, 'Design Check');
   assert.equal($(menu, '.email').textContent, 'design-check@example.test');
-  assert.equal($(menu, '.team-name').textContent, 'Team example.test');
-  assert.deepEqual(rows(menu), ['photo', 'credits', 'manage-team', 'settings', 'sign-out']);
+  assert.equal($(menu, '.who').textContent.includes('Team'), false, 'the team is in the team switcher, not here');
+  assert.deepEqual(rows(menu), ['photo', 'credits', 'manage-team', 'settings', 'switch-account', 'sign-out']);
   assert.equal($(menu, '.version').textContent, 'Version 2.3.0');
 });
 
@@ -32,12 +32,19 @@ test('credits: a balance, Unlimited, a spinner, or no row', () => {
   assert.equal($(menu, '.credits'), null);
 });
 
-test('credits are a button to Billing only for those who may pay', () => {
+test('credits are always a button to Billing; the + only for those who may pay; text while loading or read-only', () => {
   const menu = mount({ ...USER, ...TEAM, credits: '10' });
-  assert.equal($(menu, '.credits').tagName, 'DIV');
-  menu.setAttribute('can-top-up', '');
   assert.equal($(menu, '.credits').tagName, 'BUTTON');
+  assert.equal($(menu, '.credits .top-up'), null);
+  menu.setAttribute('can-top-up', '');
+  assert.ok($(menu, '.credits .top-up'));
   menu.setAttribute('credits', 'unlimited');
+  assert.equal($(menu, '.credits').tagName, 'BUTTON');
+  assert.equal($(menu, '.credits .top-up'), null, 'an unlimited team has nothing to top up');
+  menu.setAttribute('credits', 'loading');
+  assert.equal($(menu, '.credits').tagName, 'DIV');
+  menu.setAttribute('credits', '10');
+  menu.setAttribute('credits-readonly', '');
   assert.equal($(menu, '.credits').tagName, 'DIV');
 });
 
@@ -65,13 +72,13 @@ test('preventDefault keeps the page from opening: the app opens it its own way',
   assert.deepEqual(assigned, []);
 });
 
-test('rows without a page (Settings, Sign out) only fire the event', () => {
+test('rows without a page (Settings, Switch account, Sign out) only fire the event', () => {
   const menu = mount({ ...USER, 'account-url': 'https://account.binom.test' });
   const seen = [];
   menu.addEventListener('binom-account-menu-select', (e) => seen.push(e.detail));
-  for (const item of ['settings', 'sign-out']) $(menu, `[data-item="${item}"]`).click();
-  assert.deepEqual(seen.map((d) => d.url), [null, null]);
-  assert.deepEqual(seen.map((d) => d.item), ['settings', 'sign-out']);
+  for (const item of ['settings', 'switch-account', 'sign-out']) $(menu, `[data-item="${item}"]`).click();
+  assert.deepEqual(seen.map((d) => d.url), [null, null, null]);
+  assert.deepEqual(seen.map((d) => d.item), ['settings', 'switch-account', 'sign-out']);
 });
 
 test('the photo keeps the menu open and is disabled while it uploads', () => {
@@ -86,7 +93,7 @@ test('the photo keeps the menu open and is disabled while it uploads', () => {
 
 test('hide drops built-in items, label-* renames them', () => {
   const menu = mount({ ...USER, ...TEAM, hide: 'settings photo', 'label-sign-out': 'Выйти' });
-  assert.deepEqual(rows(menu), ['manage-team', 'sign-out']);
+  assert.deepEqual(rows(menu), ['manage-team', 'switch-account', 'sign-out']);
   assert.equal($(menu, '[data-item="sign-out"] .label').textContent, 'Выйти');
 });
 
@@ -104,7 +111,7 @@ test('Escape closes the menu, arrows move through every row including the app it
   const menu = mount({ ...USER, ...TEAM }, '<button id="own">Own</button>');
   menu.open();
   assert.deepEqual(menu.items().map((el) => el.dataset?.item ?? el.id), [
-    'photo', 'manage-team', 'settings', 'own', 'sign-out',
+    'photo', 'manage-team', 'settings', 'own', 'switch-account', 'sign-out',
   ]);
   document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' }));
   assert.equal(menu.isOpen, false);
@@ -129,9 +136,7 @@ test('badge-<id> shows a count on a built-in row, 99+ above 99, with its spoken 
   assert.equal($(menu, '[data-item="settings"] .count'), null);
 });
 
-test('a team logo that does not load is dropped, the name stays', () => {
-  const menu = mount({ ...USER, ...TEAM, 'team-logo': 'https://img.test/missing.png' });
-  $(menu, '.team-logo').dispatchEvent(new Event('error'));
-  assert.equal($(menu, '.team-logo'), null);
-  assert.equal($(menu, '.team-name').textContent, 'Team example.test');
+test('no Manage team without a team id', () => {
+  const menu = mount(USER);
+  assert.equal($(menu, '[data-item="manage-team"]'), null);
 });

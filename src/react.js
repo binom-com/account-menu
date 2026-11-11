@@ -59,7 +59,7 @@ const hideAttribute = (hide) => (hide?.length ? hide.join(' ') : undefined);
  * (`open()`, `close()`, `isOpen`). `onSelect(item, event)`.
  */
 export const AccountMenu = forwardRef(function AccountMenu(
-  { user, team, credits, canTopUp, accountUrl, version, hide, labels, badges, size, isPhotoBusy, onSelect, onOpenChange, className, children },
+  { user, teamId, credits, canTopUp, isCreditsReadOnly, accountUrl, version, hide, labels, badges, size, isPhotoBusy, onSelect, onOpenChange, className, children },
   forwardedRef,
 ) {
   const setRef = useElement('binom-account-menu', forwardedRef, (detail, event) => onSelect?.(detail.item, event), onOpenChange);
@@ -72,11 +72,10 @@ export const AccountMenu = forwardRef(function AccountMenu(
       'user-email': user.email ?? undefined,
       'user-photo': user.photoUrl ?? undefined,
       'user-id': user.id ?? undefined,
-      'team-name': team?.name ?? undefined,
-      'team-logo': team?.logoUrl ?? undefined,
-      'team-id': team?.id ?? undefined,
+      'team-id': teamId ?? undefined,
       credits: credits === null || credits === undefined ? undefined : String(credits),
       'can-top-up': flag(canTopUp),
+      'credits-readonly': flag(isCreditsReadOnly),
       'account-url': accountUrl ?? undefined,
       version: version ?? undefined,
       hide: hideAttribute(hide),

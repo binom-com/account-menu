@@ -1,5 +1,5 @@
 /** A built-in row of the account menu: the `item` of its select event, a word of `hide`. */
-export type AccountMenuItem = 'photo' | 'credits' | 'manage-team' | 'settings' | 'sign-out';
+export type AccountMenuItem = 'photo' | 'credits' | 'manage-team' | 'settings' | 'switch-account' | 'sign-out';
 
 /** Account menu texts that can be replaced, one `label-<id>` attribute each (for another language). */
 export type AccountMenuLabel = AccountMenuItem | 'unlimited' | 'top-up' | 'version' | 'menu' | 'loading';
