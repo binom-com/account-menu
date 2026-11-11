@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.2.0 — 2026-11-11
+
+- The team switcher's last row is **Manage team** (the open team's members page in Binom Account; item `manage-team`, with `teamId`), in place of **Create team** (item `create`, `hide="create"` and `label-create` are gone). It is absent without `team-id` or with `hide="manage-team"`.
+- Team logos and initials are round, on the button and in the list.
+
 ## 0.1.0 — 2026-11-11
 
 First version, built from Chat's header.

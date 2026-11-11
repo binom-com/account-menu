@@ -49,13 +49,14 @@ export interface TeamSwitcherProps {
   teams: TeamSwitcherTeam[];
   /** The open team. */
   teamId?: string | null;
-  /** Binom Account's address: **Create team** opens its home. */
+  /** Binom Account's address: **Manage team** opens the open team's members page there. */
   accountUrl?: string | null;
-  hide?: Array<'create'>;
+  hide?: Array<'manage-team'>;
   labels?: Partial<Record<TeamSwitcherLabel, string>>;
   /** A phone's header: only the team's mark and ⇕ on the button (`compact`). */
   isCompact?: boolean;
-  /** A team was chosen (`teamId`), or **Create team** (`null`; `event.preventDefault()` to open it your own way). */
+  /** A team was chosen (`teamId`), or **Manage team** (`null`, `event.detail.item === 'manage-team'`;
+   * `event.preventDefault()` to open it your own way). */
   onSelect?(teamId: string | null, event: TeamSwitcherSelectEvent): void;
   onOpenChange?(isOpen: boolean): void;
   className?: string;

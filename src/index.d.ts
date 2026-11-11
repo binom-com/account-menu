@@ -37,13 +37,13 @@ export interface TeamSwitcherTeam {
   unreadMuted?: boolean;
 }
 
-export type TeamSwitcherLabel = 'menu' | 'create' | 'unread';
+export type TeamSwitcherLabel = 'menu' | 'manage-team' | 'unread';
 
 export interface TeamSwitcherSelectDetail {
-  item: 'team' | 'create';
-  /** The chosen team (item `team`). */
+  item: 'team' | 'manage-team';
+  /** The chosen team (item `team`), or the open one (`manage-team`). */
   teamId?: string;
-  /** Create team: Binom Account's home, opened unless the event is cancelled. */
+  /** Manage team: the open team's members page in Binom Account, opened unless the event is cancelled. */
   url: string | null;
 }
 

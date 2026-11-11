@@ -8,9 +8,9 @@ This package holds the header menus that every Binom app (Chat, Meet, Ideas, Cal
 ```
 
 **Team switcher** (`<binom-team-switcher>`) sits beside the app's name, the way a project does in Google Cloud's header or a workspace in Railway's. Its button shows the open team. The list it opens has:
-- every team, with the user's role and unread count;
+- every team, with its round logo (or initials), the user's role and unread count;
 - a ✓ on the open team;
-- **Create team**, which opens Binom Account.
+- **Manage team**, which opens the open team's members page in Binom Account.
 
 **Account menu** (`<binom-account-menu>`) opens from the user's photo at the right. It contains:
 - a profile card: photo with a camera badge, name and email (the team is in the team switcher);

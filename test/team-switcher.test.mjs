@@ -32,7 +32,7 @@ test('a team without a logo gets its initials on its own hue', () => {
   assert.equal($(el, '.trigger .mark--tinted').textContent, 'GC');
 });
 
-test('the list has every team with its role, the open one checked and without a count, then Create team', () => {
+test('the list has every team with its role, the open one checked and without a count, then Manage team', () => {
   const el = switcher();
   const rows = teamRows(el);
   assert.deepEqual(rows.map((row) => row.dataset.teamId), ['t1', 't2', 't3']);
@@ -42,7 +42,7 @@ test('the list has every team with its role, the open one checked and without a 
   assert.equal(rows[0].querySelector('.role').textContent, 'Owner');
   assert.equal(rows[1].querySelector('.count [aria-hidden]').textContent, '3');
   assert.ok(rows[2].querySelector('.count--muted'));
-  assert.ok($(el, '[data-item="create"]'));
+  assert.ok($(el, '[data-item="manage-team"]'));
 });
 
 test('choosing a team fires the select event with its id and closes the list', () => {
@@ -55,21 +55,31 @@ test('choosing a team fires the select event with its id and closes the list', (
   assert.equal(el.isOpen, false);
 });
 
-test('Create team opens Binom Account’s home unless the app prevents it', () => {
+test('Manage team opens the open team’s members page in Binom Account unless the app prevents it', () => {
   const el = switcher({ 'account-url': 'https://account.binom.test' });
   const assigned = [];
+  const seen = [];
   window.location.assign = (url) => assigned.push(url);
-  $(el, '[data-item="create"]').click();
-  assert.deepEqual(assigned, [`https://account.binom.test/account?return=${encodeURIComponent('https://chat.binom.com/c/42')}`]);
+  el.addEventListener('binom-team-switcher-select', (e) => seen.push(e.detail));
+  $(el, '[data-item="manage-team"]').click();
+  const url = `https://account.binom.test/account/teams/t1/members?return=${encodeURIComponent('https://chat.binom.com/c/42')}`;
+  assert.deepEqual(assigned, [url]);
+  assert.deepEqual(seen, [{ item: 'manage-team', teamId: 't1', url }]);
 
   el.addEventListener('binom-team-switcher-select', (e) => e.preventDefault());
-  $(el, '[data-item="create"]').click();
+  $(el, '[data-item="manage-team"]').click();
   assert.equal(assigned.length, 1);
 });
 
-test('hide="create" drops Create team; label-* renames the texts', () => {
-  const el = switcher({ hide: 'create', 'label-menu': 'Команды' });
-  assert.equal($(el, '[data-item="create"]'), null);
+test('the team marks are round', () => {
+  const el = switcher();
+  assert.match(el.shadowRoot.querySelector('style').textContent, /\.mark\{[^}]*border-radius:50%/);
+});
+
+test('hide="manage-team" drops Manage team, and so does no open team; label-* renames the texts', () => {
+  const el = switcher({ hide: 'manage-team', 'label-menu': 'Команды' });
+  assert.equal($(el, '[data-item="manage-team"]'), null);
+  assert.equal($(switcher({ 'team-id': '' }), '[data-item="manage-team"]'), null);
   assert.equal($(el, '.heading').textContent, 'Команды');
 });
 
@@ -90,5 +100,5 @@ test('broken teams JSON means no teams, not a crash', () => {
 test('the app’s own rows go after the teams and arrows move through all of them', () => {
   const el = switcher({}, '<button id="manage">All teams</button>');
   el.open();
-  assert.deepEqual(el.items().map((row) => row.dataset?.teamId ?? row.dataset?.item ?? row.id), ['t1', 't2', 't3', 'manage', 'create']);
+  assert.deepEqual(el.items().map((row) => row.dataset?.teamId ?? row.dataset?.item ?? row.id), ['t1', 't2', 't3', 'manage', 'manage-team']);
 });

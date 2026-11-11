@@ -3,7 +3,8 @@
  *
  * The open team, beside the app's name on the left of the header (after <binom-switcher> and the name, as Google
  * Cloud's project picker or Railway's workspace): its logo (or initials), its name and ⇕. A click lists the user's
- * teams (logo, name, role, unread count, ✓ on the open one) and **Create team** (Binom Account) at the bottom. The
+ * teams (round logo or initials, name, role, unread count, ✓ on the open one) and **Manage team** (the open team's
+ * members page in Binom Account) at the bottom. The
  * other teams' unread total shows on the button. On a phone the list rises from the bottom as a sheet.
  *
  *   <binom-team-switcher team-id="t_1" account-url="https://account.binom.com"
@@ -11,14 +12,14 @@
  *   </binom-team-switcher>
  *
  * Choosing a team fires `binom-team-switcher-select` (bubbles, composed, cancelable; detail { item: 'team', teamId,
- * url: null }): the app opens it. **Create team** fires it with { item: 'create', url } and opens `url` unless the
- * app calls preventDefault(). The full contract: docs/INTEGRATION.md.
+ * url: null }): the app opens it. **Manage team** fires it with { item: 'manage-team', teamId, url } and opens `url`
+ * unless the app calls preventDefault(). The full contract: docs/INTEGRATION.md.
  */
 import { PopupMenu, accountPage, countHtml, esc, hue, icon, initials } from './popup.js';
 
 const LABELS = {
   menu: 'Teams',
-  create: 'Create team',
+  'manage-team': 'Manage team',
   unread: 'unread',
 };
 
@@ -52,7 +53,7 @@ const CSS = [
   ':host([compact]) .trigger{gap:4px;padding:0 4px}',
   ':host([compact]) .trigger-name{display:none}',
   '.trigger .icon{flex:none;color:var(--color-muted)}',
-  '.mark{box-sizing:border-box;flex:none;display:inline-flex;align-items:center;justify-content:center;width:var(--bam-size);height:var(--bam-size);border-radius:var(--radius-sm);object-fit:cover;font-weight:600;font-size:calc(var(--bam-size) * .42);line-height:1;user-select:none}',
+  '.mark{box-sizing:border-box;flex:none;display:inline-flex;align-items:center;justify-content:center;width:var(--bam-size);height:var(--bam-size);border-radius:50%;object-fit:cover;font-weight:600;font-size:calc(var(--bam-size) * .42);line-height:1;user-select:none}',
   '.mark--tinted{background:color-mix(in srgb,hsl(var(--bam-hue) 45% 62%) 32%,var(--color-bg));color:color-mix(in srgb,hsl(var(--bam-hue) 40% 45%) 40%,var(--color-text))}',
   '.heading{padding:8px 12px 4px;font-size:.75rem;font-weight:600;color:var(--color-muted)}',
   '.team-text{display:flex;flex-direction:column;flex:1;min-width:0;line-height:1.25}',
@@ -115,20 +116,23 @@ class BinomTeamSwitcher extends PopupMenu {
         `${this.mark(team, 28)}<span class="team-text"><span>${esc(team.name)}</span>${role}</span>${unread}` +
         `${isOpen ? `<span class="check">${icon('check', 18)}</span>` : ''}</button>`;
     }).join('');
-    const canCreate = !this.isHidden('create');
-    const create = canCreate
-      ? `<div class="separator"></div><button type="button" class="item" role="menuitem" data-item="create">${icon('plus', 18)}<span class="label">${esc(this.label('create'))}</span></button>`
+    const canManage = openId && !this.isHidden('manage-team');
+    const manage = canManage
+      ? `<div class="separator"></div><button type="button" class="item" role="menuitem" data-item="manage-team">${icon('users', 18)}<span class="label">${esc(this.label('manage-team'))}</span></button>`
       : '';
-    return `<div class="heading">${esc(this.label('menu'))}</div>${rows}<slot></slot>${create}`;
+    return `<div class="heading">${esc(this.label('menu'))}</div>${rows}<slot></slot>${manage}`;
   }
 
-  /** Create team: Binom Account's home, where teams are created. */
+  /** Manage team: the open team's members page in Binom Account (people, roles, invites, leaving the team). */
   urlOf(item) {
-    return item === 'create' ? accountPage(this.getAttribute('account-url'), '') : null;
+    const teamId = this.getAttribute('team-id');
+    if (item !== 'manage-team' || !teamId) return null;
+    return accountPage(this.getAttribute('account-url'), `/teams/${encodeURIComponent(teamId)}/members`);
   }
 
   detailOf(item, data) {
-    return item === 'team' ? { teamId: data.teamId } : {};
+    if (item === 'team') return { teamId: data.teamId };
+    return item === 'manage-team' ? { teamId: this.getAttribute('team-id') } : {};
   }
 }
 

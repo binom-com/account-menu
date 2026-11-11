@@ -90,13 +90,13 @@ export const AccountMenu = forwardRef(function AccountMenu(
 
 /**
  * The Binom team switcher for React apps, beside the app's name. `onSelect(teamId, event)` for a team (null and
- * `event.detail.item === 'create'` for **Create team**). Extra rows are its children, after the teams.
+ * `event.detail.item === 'manage-team'` for **Manage team**). Extra rows are its children, after the teams.
  */
 export const TeamSwitcher = forwardRef(function TeamSwitcher(
   { teams, teamId, accountUrl, hide, labels, isCompact, onSelect, onOpenChange, className, children },
   forwardedRef,
 ) {
-  const setRef = useElement('binom-team-switcher', forwardedRef, (detail, event) => onSelect?.(detail.teamId ?? null, event), onOpenChange);
+  const setRef = useElement('binom-team-switcher', forwardedRef, (detail, event) => onSelect?.(detail.item === 'team' ? detail.teamId : null, event), onOpenChange);
   return createElement(
     'binom-team-switcher',
     {

@@ -14,7 +14,7 @@ Every Binom app has the same header:
 | Piece | Where it comes from | What it does |
 | --- | --- | --- |
 | `<binom-switcher>` | `https://binom.com/switcher/v1.js`, a script tag | Lists the Binom apps and Help & support. Not part of this package. |
-| `<binom-team-switcher>` | this package | Shows the open team. Its list holds every team of the user and **Create team**. |
+| `<binom-team-switcher>` | this package | Shows the open team. Its list holds every team of the user and **Manage team**. |
 | `<binom-account-menu>` | this package | Opens from the user's photo: profile, credits, Manage team, your own rows, Settings, Switch account, Sign out, version. |
 
 Teams are switched only in the team switcher, never in the account menu. **Switch account** in the account menu is something else: it signs in as another Binom account (another Google account). Like a project in Google Cloud's header or a workspace in Railway's, the open team stands after the app's name.
@@ -101,20 +101,20 @@ Meet does this in `AuthManager.switchAccount()`, Chat in `useSession().switchAcc
 
 ## 4. The team switcher (`<binom-team-switcher>`)
 
-The button shows the open team's logo (else initials on its own hue), its name, the other teams' unread total and ⇕. The list, **Teams**, shows every team with its logo, name and the user's role, an unread count on each other team, and a ✓ on the open team. Below the teams come your own rows, then **Create team**.
+The button shows the open team's round logo (else initials on its own hue, in a circle too), its name, the other teams' unread total and ⇕. The list, **Teams**, shows every team with its logo, name and the user's role, an unread count on each other team, and a ✓ on the open team. Below the teams come your own rows, then **Manage team**.
 
 | Attribute | React prop | Meaning |
 | --- | --- | --- |
 | `teams` | `teams` | A JSON array of `{ id, name, logoUrl?, role?, unread?, unreadMuted? }`, in the order to list them. The React prop is the array itself. |
 | `team-id` | `teamId` | The open team. |
-| `account-url` | `accountUrl` | **Create team** opens `<account-url>/account?return=<this page>`. |
-| `hide="create"` | `hide={['create']}` | No **Create team**, for example without Binom Account. |
+| `account-url` | `accountUrl` | **Manage team** opens `<account-url>/account/teams/<team-id>/members?return=<this page>`. |
+| `hide="manage-team"` | `hide={['manage-team']}` | No **Manage team**, for example without Binom Account. It is also absent without `team-id`. |
 | `compact` | `isCompact` | A phone's header: only the team's mark and ⇕ on the button. |
-| `label-menu`, `label-create`, `label-unread` | `labels` | Your texts: the list's heading and button name (`<menu>: <team>`), **Create team**, and the word spoken after a count. |
-| — | `onSelect(teamId, event)` | `teamId` is the chosen team; `null` with `event.detail.item === 'create'` means **Create team**. |
+| `label-menu`, `label-manage-team`, `label-unread` | `labels` | Your texts: the list's heading and button name (`<menu>: <team>`), **Manage team**, and the word spoken after a count. |
+| — | `onSelect(teamId, event)` | `teamId` is the chosen team; `null` with `event.detail.item === 'manage-team'` means **Manage team**. |
 | — | `onOpenChange`, `ref` | As for the account menu. |
 
-`binom-team-switcher-select` has the `detail` `{ item: 'team', teamId, url: null }` or `{ item: 'create', url }`. The element never switches the team itself: open the chosen team in your app, and do nothing when the open team is chosen again. **Create team** opens `url` unless you call `preventDefault()`.
+`binom-team-switcher-select` has the `detail` `{ item: 'team', teamId, url: null }` or `{ item: 'manage-team', teamId, url }`. The element never switches the team itself: open the chosen team in your app, and do nothing when the open team is chosen again. **Manage team** opens `url` unless you call `preventDefault()`.
 
 `unreadMuted: true` means every unread message of that team is in a muted chat; its count is then grey. The button's total is grey only when every other team with unread messages is muted. Omit `unread` if your app has no unread counts.
 
@@ -172,7 +172,7 @@ Where the data comes from (your server asks Binom Account with the app's key, `A
    - In `onSelect`, handle `settings`, `switch-account` (section 3, Switch account) and `sign-out`. For `photo`, `credits` and `manage-team`, keep the default or call `preventDefault()` and open the page yourself.
 5. Team switcher: pass `teams` with roles (and unread counts if you have them) and `teamId`; open the chosen team in `onSelect`.
 6. Add the app's own rows as children.
-7. Hide what the app cannot do: `hide={['manage-team']}` and `hide={['create']}` without Binom Account, and `isCreditsReadOnly` (no `canTopUp`) in a store app.
+7. Hide what the app cannot do: `hide={['manage-team']}` on both menus without Binom Account, and `isCreditsReadOnly` (no `canTopUp`) in a store app.
 8. In tests: the built-in rows are in the shadow root. With Testing Library use `within(element.shadowRoot)`; built-in rows have the role `menuitem`, while the photo and the triggers are `button`. Your own rows are in the light DOM, so `screen` finds them.
 9. Update your app's user help and README in the same change.
 
@@ -183,8 +183,8 @@ Chat (`binom-com/chat`) wires the elements in these files:
 - `apps/ui/src/layout/AppHeader.tsx`: the switcher, **Chat**, `/`, `<HeaderTeamSwitcher>`, and on the right the pills and `<UserMenu>`.
 - `apps/ui/src/features/orgs/HeaderTeamSwitcher.tsx`:
   - `teams` are built from the session's orgs, with `strings.members.role[role]` and the unread counts per team from `GET /api/me/unread`.
-  - `onSelect`: `selectOrg(teamId)`. **Create team** calls `preventDefault()` and opens Binom Account in a new tab, or in the system browser in the desktop app.
-  - `isCompact` on a phone.
+  - `onSelect`: `selectOrg(teamId)`. **Manage team** calls `preventDefault()` and opens the team's members page in a new tab, or in the system browser in the desktop app.
+  - Not on a phone: there the account menu has Chat's own **Switch team** row, which leads to Chat's team picker.
   - The system Back closes the sheet.
 - `apps/ui/src/features/account/UserMenu.tsx`:
   - `onSelect` always calls `preventDefault()`.

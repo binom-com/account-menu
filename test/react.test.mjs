@@ -62,7 +62,7 @@ test('TeamSwitcher passes the teams as JSON and calls onSelect with the chosen t
   const el = document.querySelector('binom-team-switcher');
   assert.deepEqual(JSON.parse(el.getAttribute('teams')), teams);
   el.shadowRoot.querySelector('[data-team-id="t2"]').click();
-  el.shadowRoot.querySelector('[data-item="create"]').click();
+  el.shadowRoot.querySelector('[data-item="manage-team"]').click();
   assert.deepEqual(chosen, ['t2', null]);
   await act(async () => root.unmount());
 });

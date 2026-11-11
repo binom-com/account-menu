@@ -1,6 +1,6 @@
 {
   "name": "@binom/account-menu",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "The Binom header menus for every Binom app: the account menu on the right (profile, credits, Manage team, Settings, Sign out, the app's own rows, version) and the team switcher beside the app's name.",
   "type": "module",
   "private": false,
