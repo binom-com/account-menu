@@ -1,0 +1,50 @@
+{
+  "name": "@binom/account-menu",
+  "version": "0.1.0",
+  "description": "The Binom user menu for the right corner of every Binom app: profile, credits, Manage team, Settings, Switch account, Sign out, the app's own items and version.",
+  "type": "module",
+  "private": false,
+  "license": "MIT",
+  "repository": "github:binom-com/account-menu",
+  "exports": {
+    ".": {
+      "types": "./src/account-menu.d.ts",
+      "default": "./src/account-menu.js"
+    },
+    "./react": {
+      "types": "./src/react.d.ts",
+      "default": "./src/react.js"
+    },
+    "./account-menu.js": "./src/account-menu.js",
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "src"
+  ],
+  "sideEffects": [
+    "./src/account-menu.js",
+    "./src/react.js"
+  ],
+  "scripts": {
+    "test": "node --test test/*.test.mjs",
+    "demo": "python3 -m http.server 5190"
+  },
+  "peerDependencies": {
+    "@binom/ui": ">=0.1.1",
+    "react": ">=18"
+  },
+  "peerDependenciesMeta": {
+    "react": {
+      "optional": true
+    }
+  },
+  "devDependencies": {
+    "@binom/ui": "https://github.com/binom-com/ui/archive/refs/tags/v0.1.1.tar.gz",
+    "@happy-dom/global-registrator": "^21.0.4",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}

@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Binom account menu — demo</title>
+  <!-- Serve the repository root (`npm run demo`) and open /demo/. -->
+  <link rel="stylesheet" href="../node_modules/@binom/ui/dist/theme.css" />
+  <script src="https://binom.com/switcher/v1.js" defer></script>
+  <script src="../src/account-menu.js" defer></script>
+  <style>
+    body { margin: 0; background: var(--color-page); color: var(--color-text); }
+    header { display: flex; align-items: center; justify-content: space-between; gap: 12px; height: 56px; padding: 0 12px; }
+    .start { display: flex; align-items: center; gap: 8px; font-weight: 600; font-size: 1.125rem; }
+    main { padding: 24px 16px; color: var(--color-muted); }
+    .controls { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 12px; }
+    #log { margin-top: 16px; font-family: ui-monospace, monospace; font-size: 13px; white-space: pre-wrap; }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="start"><binom-switcher app="chat" size="36"></binom-switcher>Chat</div>
+    <binom-account-menu
+      id="menu"
+      user-name="Design Check"
+      user-email="design-check@example.test"
+      user-id="u_1"
+      team-name="Team example.test"
+      team-id="t_1"
+      credits="1250"
+      can-top-up
+      account-url="https://account.binom.com"
+      version="1.4.0"
+    >
+      <button slot="start" type="button">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2.586 17.414A2 2 0 0 0 2 18.828V21a1 1 0 0 0 1 1h3a1 1 0 0 0 1-1v-1a1 1 0 0 1 1-1h1a1 1 0 0 0 1-1v-1a1 1 0 0 1 1-1h.172a2 2 0 0 0 1.414-.586l.814-.814a6.5 6.5 0 1 0-4-4z"/><circle cx="16.5" cy="7.5" r=".5" fill="currentColor"/></svg>
+        Vault
+      </button>
+      <button type="button">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="m10 8 6 4-6 4z"/></svg>
+        Watch demo
+      </button>
+    </binom-account-menu>
+  </header>
+  <main>
+    The user menu of every Binom app. Try the states:
+    <div class="controls">
+      <button type="button" data-credits="1250">1,250 credits</button>
+      <button type="button" data-credits="unlimited">Unlimited</button>
+      <button type="button" data-credits="loading">Loading</button>
+      <button type="button" id="payer">Toggle can-top-up</button>
+      <button type="button" id="theme">Toggle dark</button>
+    </div>
+    <div id="log"></div>
+  </main>
+  <script>
+    const menu = document.getElementById('menu');
+    const log = document.getElementById('log');
+    menu.addEventListener('binom-account-menu-select', (e) => {
+      e.preventDefault(); // the demo stays here instead of opening Binom Account
+      log.textContent = 'select ' + JSON.stringify(e.detail) + '\n' + log.textContent;
+    });
+    document.querySelectorAll('[data-credits]').forEach((b) => b.addEventListener('click', () => menu.setAttribute('credits', b.dataset.credits)));
+    document.getElementById('payer').addEventListener('click', () => menu.toggleAttribute('can-top-up'));
+    document.getElementById('theme').addEventListener('click', () => {
+      const root = document.documentElement;
+      root.dataset.theme = root.dataset.theme === 'dark' ? 'light' : 'dark';
+    });
+  </script>
+</body>
+</html>
