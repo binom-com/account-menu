@@ -1,26 +1,30 @@
 # @binom/account-menu
 
-The user menu for the right corner of every Binom app (Chat, Meet, Ideas, Calendar, Synergy), so it is the same everywhere. It is the partner of the app switcher `<binom-switcher>` on the left (`https://binom.com/switcher/v1.js`) and is built the same way: one custom element, `<binom-account-menu>`, Shadow DOM, no dependencies. It works in any app: React + MUI, Tailwind, Next.js, plain HTML. React apps also get a typed wrapper, `AccountMenu`.
+This package holds the header menus that every Binom app (Chat, Meet, Ideas, Calendar, Synergy) shares, so the header looks and works the same in each of them:
 
-The look comes from the Binom design system [`@binom/ui`](https://github.com/binom-com/ui). The menu reads its tokens from the page (`--color-*`, `--radius*`, `--shadow-popover`, `--menu-item-size`, `--motion-*`, `--font`), so it follows the app's theme, `data-theme` included. It is based on Chat's user menu.
+```
+[b-icon] Chat / [TE] Team example.test ⇕                    [DC]
+ └ <binom-switcher>  └ <binom-team-switcher>                 └ <binom-account-menu>
+```
 
-## What is in the menu
+**Team switcher** (`<binom-team-switcher>`) sits beside the app's name, the way a project does in Google Cloud's header or a workspace in Railway's. Its button shows the open team. The list it opens has:
+- every team, with the user's role and unread count;
+- a ✓ on the open team;
+- **Create team**, which opens Binom Account.
 
-The user's photo in the header (or their initials on a pastel of their own hue) opens the menu. From top to bottom:
+**Account menu** (`<binom-account-menu>`) opens from the user's photo at the right. It contains:
+- a profile card: photo with a camera badge, name, email and team;
+- **Credits**: a click opens Billing for those who may pay;
+- **Manage team**, **Settings**, the app's own rows and **Sign out**;
+- the app's version.
 
-| Row | Id | What it does |
-| --- | --- | --- |
-| Profile card: photo with a camera badge, name, email, team (logo + name) | `photo` (the photo) | A click on the photo changes it. By default it opens Profile in Binom Account; an app with its own upload cancels the event and sets `photo-busy` while uploading. The menu stays open. |
-| **Credits** with the team's balance, `Unlimited`, or a spinner | `credits` | For the owner, admins and billing members (`can-top-up`), the whole row is a button with **+**. It opens the team's Billing page in Binom Account, as the credits pill in Meet does. For everyone else the row is read-only. |
-| The app's items, `slot="start"` | — | Optional, e.g. Chat's Vault. |
-| **Manage team** | `manage-team` | The team's members page in Binom Account. Shown only when there is a team. |
-| **Settings** | `settings` | The app's own settings; only an event. |
-| The app's items, no slot | — | Optional, e.g. Import chats, Watch demo, Download app. |
-| **Switch account** | `switch-account` | Choose another account or team; only an event. |
-| **Sign out** | `sign-out` | Only an event. |
-| `Version X` | — | Small print at the bottom, when `version` is set. |
+Both are custom elements with a Shadow DOM and no dependencies, built the same way as the app switcher `<binom-switcher>` (`https://binom.com/switcher/v1.js`). Both have React wrappers, `AccountMenu` and `TeamSwitcher`.
 
-On a window narrower than 800px (Chat's phone layout) the menu rises from the bottom as a sheet over the dimmed page, with taller rows. Escape, a press outside, or choosing an item closes it. Arrow keys, Home and End move through every row, the app's items included. When an item is chosen, focus returns to the avatar.
+- **Look:** the colours, corners, shadows and motion come from the [`@binom/ui`](https://github.com/binom-com/ui) tokens on the page, so the menus follow the app's light or dark theme.
+- **Phone:** both menus rise from the bottom as a sheet.
+- **Behaviour:** the app decides what each row does through the menus' select events.
+
+**→ The full contract and a step-by-step checklist for adding the menus to an app: [docs/INTEGRATION.md](docs/INTEGRATION.md).**
 
 ## Install
 
@@ -29,89 +33,39 @@ On a window narrower than 800px (Chat's phone layout) the menu rises from the bo
 "@binom/ui": "https://github.com/binom-com/ui/archive/refs/tags/v0.1.1.tar.gz"
 ```
 
-It installs from a GitHub tag, like `@binom/ui`. The page must load the `@binom/ui` tokens (`theme.css`, `tokens.css` or `tailwind.css`; see its README), because without them the menu has no colours.
-
-## Use
-
-### React (Chat, Meet, Calendar, Synergy)
+## React in one glance
 
 ```tsx
-import { AccountMenu } from '@binom/account-menu/react';
+import { AccountMenu, TeamSwitcher } from '@binom/account-menu/react';
 
-<AccountMenu
-  user={{ id: user.id, name: user.name, email: user.email, photoUrl: user.avatarUrl }}
-  team={{ id: team.id, name: team.name, logoUrl: team.logoUrl }}
-  credits={balance.isPending ? 'loading' : balance.data?.unlimited ? 'unlimited' : balance.data?.credits}
-  canTopUp={role !== 'member'}
-  accountUrl={config.accountUrl}            // https://account.binom.com
-  version={APP_VERSION}
-  onSelect={(item, event) => {
-    if (item === 'settings') openSettings();
-    if (item === 'switch-account') switchAccount();
-    if (item === 'sign-out') signOut();
-  }}
->
-  <button type="button" slot="start" onClick={openVault}><KeyRound size={18} /> Vault</button>
-  <button type="button" onClick={startDemo}><CirclePlay size={18} /> Watch demo</button>
-</AccountMenu>
+<header>
+  <binom-switcher app="meet" size="36" /> Meet <span>/</span>
+  <TeamSwitcher
+    teams={teams.map((t) => ({ id: t.id, name: t.name, logoUrl: t.logoUrl, role: t.roleLabel, unread: t.unread }))}
+    teamId={team.id}
+    accountUrl={ACCOUNT_URL}
+    isCompact={isPhone}
+    onSelect={(teamId) => teamId && openTeam(teamId)}
+  />
+  …
+  <AccountMenu
+    user={{ id: user.id, name: user.name, email: user.email, photoUrl: user.photo }}
+    team={{ id: team.id, name: team.name, logoUrl: team.logoUrl }}
+    credits={balance.isLoading ? 'loading' : balance.data?.unlimited ? 'unlimited' : balance.data?.credits}
+    canTopUp={['owner', 'admin', 'billing'].includes(role)}
+    accountUrl={ACCOUNT_URL}
+    version={APP_VERSION}
+    onSelect={(item) => {
+      if (item === 'settings') openSettings();
+      if (item === 'sign-out') signOut();
+    }}
+  >
+    <button type="button" onClick={openAdmin}><Shield size={18} /> Admin console</button>
+  </AccountMenu>
+</header>
 ```
 
-### Any page
-
-```html
-<script type="module">import '@binom/account-menu';</script>
-
-<binom-account-menu user-name="Design Check" user-email="design-check@example.test" user-id="u_1"
-  team-name="Team example.test" team-id="t_1" credits="1250" can-top-up
-  account-url="https://account.binom.com" version="1.4.0">
-  <button type="button" slot="start">Vault</button>
-</binom-account-menu>
-
-<script>
-  document.querySelector('binom-account-menu').addEventListener('binom-account-menu-select', (e) => {
-    if (e.detail.item === 'sign-out') signOut();
-  });
-</script>
-```
-
-### Attributes
-
-| Attribute | Meaning |
-| --- | --- |
-| `user-name`, `user-email` | The profile card; the name is also the avatar's tooltip. |
-| `user-photo` | The photo URL. Without it the avatar shows initials. |
-| `user-id` | The key the initials' colour comes from (the name when absent): the same person gets the same colour in every app. |
-| `team-name`, `team-logo`, `team-id` | The open team. `team-id` builds the Billing and Manage team links. |
-| `credits` | A number, `unlimited` or `loading`. With no attribute there is no credits row. |
-| `can-top-up` | The user may pay (owner, admin, billing). The credits row then opens Billing. Leave it out in the Android app, where Google Play allows no payments. |
-| `account-url` | Binom Account's address. Without it, the photo, credits and Manage team rows only fire the event. |
-| `version` | `Version X` at the bottom. |
-| `hide` | Built-in rows to drop, by id, separated by spaces: `hide="switch-account photo"`. |
-| `label-<id>` | Your own text for a row: `label-sign-out="Выйти"`. Also `label-unlimited`, `label-top-up`, `label-version`, `label-menu`. |
-| `badge-<id>` | A count after the label of `manage-team`, `settings` or `switch-account` (99+ above 99), e.g. unread messages of other teams. `badge-<id>-muted` greys it; `badge-<id>-label` is its text for screen readers. React: `badges={{ 'switch-account': { count, isMuted, label } }}`. |
-| `size` | The header avatar in px (default 32; the tap target stays at least `--tap-size`). |
-| `photo-busy` | A new photo is uploading: the photo is disabled. |
-
-### Events
-
-- `binom-account-menu-select` (bubbles, composed, cancelable) is fired by every built-in row. Its `detail` is `{ item, url }`. For `photo`, `credits` and `manage-team`, `url` is the Binom Account page, with `?return=` set to the current page, and the element opens it in the same tab, as Meet does. Call `event.preventDefault()` to open it your own way instead: a new tab, or the desktop app's system browser.
-- `binom-account-menu-open` and `binom-account-menu-close` fire when the menu opens and closes.
-
-Methods: `open()`, `close(toButton?)`, `toggle()`, and `isOpen`.
-
-### Your own items
-
-Add them as children: plain `<button>` or `<a href>`, with an 18px icon (`<svg>`) before the text. They get the same row look as the built-in items, through a small stylesheet the element adds to the page once (`#binom-account-menu-styles`). They close the menu when clicked. Use `slot="start"` to place an item after the credits; items without a slot go after Settings.
-
-## Binom Account pages
-
-Every app uses the same pages:
-
-- `{account-url}/account/profile`
-- `{account-url}/account/teams/{team-id}/credits` (Billing)
-- `{account-url}/account/teams/{team-id}/members`
-
-Each takes `?return=<current page>`.
+Without React, set the attributes (`user-name`, `credits`, `teams`, `team-id`, …) and listen to `binom-account-menu-select` and `binom-team-switcher-select`. See [docs/INTEGRATION.md](docs/INTEGRATION.md).
 
 ## Develop
 
@@ -121,7 +75,13 @@ npm test        # node --test with happy-dom
 npm run demo    # then open http://localhost:5190/demo/
 ```
 
-The source is `src/account-menu.js` (the element, plain ES5-style JS with no build step) and `src/react.js` (the wrapper), with their `.d.ts` files. Any change to the look must be approved by the design owner of `@binom/ui`, and must use its tokens rather than literal colours. Versions are tags `vX.Y.Z`, each with a `CHANGELOG.md` entry.
+Source:
+- `src/popup.js`: what both elements share.
+- `src/account-menu.js` and `src/team-switcher.js`: the two elements.
+- `src/react.js`: the React wrappers.
+- `src/*.d.ts`: the types.
+
+Changes to the look are approved by the design owner of `@binom/ui`. Versions are tags `vX.Y.Z`, each with a `CHANGELOG.md` entry.
 
 ## Licence
 

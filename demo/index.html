@@ -3,15 +3,16 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Binom account menu — demo</title>
+  <title>Binom header menus — demo</title>
   <!-- Serve the repository root (`npm run demo`) and open /demo/. -->
   <link rel="stylesheet" href="../node_modules/@binom/ui/dist/theme.css" />
   <script src="https://binom.com/switcher/v1.js" defer></script>
-  <script src="../src/account-menu.js" defer></script>
+  <script type="module" src="../src/index.js"></script>
   <style>
     body { margin: 0; background: var(--color-page); color: var(--color-text); }
     header { display: flex; align-items: center; justify-content: space-between; gap: 12px; height: 56px; padding: 0 12px; }
-    .start { display: flex; align-items: center; gap: 8px; font-weight: 600; font-size: 1.125rem; }
+    .start { display: flex; align-items: center; gap: 8px; min-width: 0; font-weight: 600; font-size: 1.125rem; }
+    .slash { color: var(--color-border); font-weight: 400; font-size: 1.5rem; }
     main { padding: 24px 16px; color: var(--color-muted); }
     .controls { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 12px; }
     #log { margin-top: 16px; font-family: ui-monospace, monospace; font-size: 13px; white-space: pre-wrap; }
@@ -19,7 +20,11 @@
 </head>
 <body>
   <header>
-    <div class="start"><binom-switcher app="chat" size="36"></binom-switcher>Chat</div>
+    <div class="start">
+      <binom-switcher app="chat" size="36"></binom-switcher>Chat<span class="slash">/</span>
+      <binom-team-switcher id="teams" team-id="t_1" account-url="https://account.binom.com"
+        teams='[{"id":"t_1","name":"Team example.test","role":"Owner"},{"id":"t_2","name":"Beta","role":"Member","unread":3},{"id":"t_3","name":"Gamma corp","role":"Admin","unread":12,"unreadMuted":true}]'></binom-team-switcher>
+    </div>
     <binom-account-menu
       id="menu"
       user-name="Design Check"
@@ -56,6 +61,12 @@
   <script>
     const menu = document.getElementById('menu');
     const log = document.getElementById('log');
+    const teams = document.getElementById('teams');
+    teams.addEventListener('binom-team-switcher-select', (e) => {
+      e.preventDefault();
+      if (e.detail.teamId) teams.setAttribute('team-id', e.detail.teamId);
+      log.textContent = 'team ' + JSON.stringify(e.detail) + '\n' + log.textContent;
+    });
     menu.addEventListener('binom-account-menu-select', (e) => {
       e.preventDefault(); // the demo stays here instead of opening Binom Account
       log.textContent = 'select ' + JSON.stringify(e.detail) + '\n' + log.textContent;

@@ -1,18 +1,44 @@
-// React wrapper of <binom-account-menu>: typed props instead of attributes, and `onSelect` for the select event
-// (React 18 passes no custom events to JSX). The element itself is in ./account-menu.js.
+// React wrappers of <binom-account-menu> and <binom-team-switcher>: typed props instead of attributes, and
+// `onSelect` / `onOpenChange` for their events (React 18 passes no custom events to JSX). The elements are in
+// ./account-menu.js and ./team-switcher.js.
 import { createElement, forwardRef, useEffect, useRef } from 'react';
 import './account-menu.js';
+import './team-switcher.js';
 
-const SELECT_EVENT = 'binom-account-menu-select';
-const OPEN_EVENT = 'binom-account-menu-open';
-const CLOSE_EVENT = 'binom-account-menu-close';
+/** The element's ref for the wrapper and the app, and its select/open/close events as callbacks. */
+function useElement(prefix, forwardedRef, onSelect, onOpenChange) {
+  const ref = useRef(null);
+  const handlers = useRef({ onSelect, onOpenChange });
+  handlers.current = { onSelect, onOpenChange };
 
-/** `credits`: a number, `'unlimited'` or `'loading'`; null or undefined hides the row. */
-function creditsAttribute(credits) {
-  return credits === null || credits === undefined ? undefined : String(credits);
+  useEffect(() => {
+    const element = ref.current;
+    const listeners = {
+      [`${prefix}-select`]: (event) => handlers.current.onSelect?.(event.detail, event),
+      [`${prefix}-open`]: () => handlers.current.onOpenChange?.(true),
+      [`${prefix}-close`]: () => handlers.current.onOpenChange?.(false),
+    };
+    for (const [name, listener] of Object.entries(listeners)) element.addEventListener(name, listener);
+    return () => {
+      for (const [name, listener] of Object.entries(listeners)) element.removeEventListener(name, listener);
+    };
+  }, [prefix]);
+
+  return (element) => {
+    ref.current = element;
+    if (typeof forwardedRef === 'function') forwardedRef(element);
+    else if (forwardedRef) forwardedRef.current = element;
+  };
 }
 
-/** `badges`: `{ 'switch-account': { count, isMuted, label } }` → `badge-switch-account`, `-muted`, `-label`. */
+/** `labels` → `label-<id>` attributes. */
+function labelAttributes(labels) {
+  const attributes = {};
+  for (const [id, text] of Object.entries(labels ?? {})) attributes[`label-${id}`] = text;
+  return attributes;
+}
+
+/** `badges`: `{ settings: { count, isMuted, label } }` → `badge-settings`, `-muted`, `-label`. */
 function badgeAttributes(badges) {
   const attributes = {};
   for (const [id, badge] of Object.entries(badges ?? {})) {
@@ -24,59 +50,19 @@ function badgeAttributes(badges) {
   return attributes;
 }
 
-function labelAttributes(labels) {
-  const attributes = {};
-  for (const [id, text] of Object.entries(labels ?? {})) attributes[`label-${id}`] = text;
-  return attributes;
-}
+const flag = (value) => (value ? '' : undefined);
+const hideAttribute = (hide) => (hide?.length ? hide.join(' ') : undefined);
 
 /**
- * The Binom account menu for React apps. Extra items are its children: plain `<button>`s or `<a>`s,
+ * The Binom account menu for React apps. Extra rows are its children: plain `<button>`s or `<a>`s,
  * `slot="start"` for those right after the credits, no slot for those after Settings. `ref` is the element
- * (`open()`, `close()`, `isOpen`).
+ * (`open()`, `close()`, `isOpen`). `onSelect(item, event)`.
  */
-export const AccountMenu = forwardRef(function AccountMenu({
-  user,
-  team,
-  credits,
-  canTopUp,
-  accountUrl,
-  version,
-  hide,
-  labels,
-  badges,
-  size,
-  isPhotoBusy,
-  onSelect,
-  onOpenChange,
-  className,
-  children,
-}, forwardedRef) {
-  const ref = useRef(null);
-  const handlers = useRef({ onSelect, onOpenChange });
-  handlers.current = { onSelect, onOpenChange };
-
-  useEffect(() => {
-    const element = ref.current;
-    const select = (event) => handlers.current.onSelect?.(event.detail.item, event);
-    const opened = () => handlers.current.onOpenChange?.(true);
-    const closed = () => handlers.current.onOpenChange?.(false);
-    element.addEventListener(SELECT_EVENT, select);
-    element.addEventListener(OPEN_EVENT, opened);
-    element.addEventListener(CLOSE_EVENT, closed);
-    return () => {
-      element.removeEventListener(SELECT_EVENT, select);
-      element.removeEventListener(OPEN_EVENT, opened);
-      element.removeEventListener(CLOSE_EVENT, closed);
-    };
-  }, []);
-
-  const setRef = (element) => {
-    ref.current = element;
-    if (typeof forwardedRef === 'function') forwardedRef(element);
-    else if (forwardedRef) forwardedRef.current = element;
-  };
-
+export const AccountMenu = forwardRef(function AccountMenu(
+  { user, team, credits, canTopUp, accountUrl, version, hide, labels, badges, size, isPhotoBusy, onSelect, onOpenChange, className, children },
+  forwardedRef,
+) {
+  const setRef = useElement('binom-account-menu', forwardedRef, (detail, event) => onSelect?.(detail.item, event), onOpenChange);
   return createElement(
     'binom-account-menu',
     {
@@ -89,15 +75,40 @@ export const AccountMenu = forwardRef(function AccountMenu({
       'team-name': team?.name ?? undefined,
       'team-logo': team?.logoUrl ?? undefined,
       'team-id': team?.id ?? undefined,
-      credits: creditsAttribute(credits),
-      'can-top-up': canTopUp ? '' : undefined,
+      credits: credits === null || credits === undefined ? undefined : String(credits),
+      'can-top-up': flag(canTopUp),
       'account-url': accountUrl ?? undefined,
       version: version ?? undefined,
-      hide: hide?.length ? hide.join(' ') : undefined,
+      hide: hideAttribute(hide),
       size: size === undefined ? undefined : String(size),
-      'photo-busy': isPhotoBusy ? '' : undefined,
+      'photo-busy': flag(isPhotoBusy),
       ...labelAttributes(labels),
       ...badgeAttributes(badges),
+    },
+    children,
+  );
+});
+
+/**
+ * The Binom team switcher for React apps, beside the app's name. `onSelect(teamId, event)` for a team (null and
+ * `event.detail.item === 'create'` for **Create team**). Extra rows are its children, after the teams.
+ */
+export const TeamSwitcher = forwardRef(function TeamSwitcher(
+  { teams, teamId, accountUrl, hide, labels, isCompact, onSelect, onOpenChange, className, children },
+  forwardedRef,
+) {
+  const setRef = useElement('binom-team-switcher', forwardedRef, (detail, event) => onSelect?.(detail.teamId ?? null, event), onOpenChange);
+  return createElement(
+    'binom-team-switcher',
+    {
+      ref: setRef,
+      class: className,
+      teams: JSON.stringify(teams),
+      'team-id': teamId ?? undefined,
+      'account-url': accountUrl ?? undefined,
+      hide: hideAttribute(hide),
+      compact: flag(isCompact),
+      ...labelAttributes(labels),
     },
     children,
   );

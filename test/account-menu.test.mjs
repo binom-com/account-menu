@@ -17,7 +17,7 @@ test('the menu lists the profile card and every built-in item in order, with the
   assert.equal($(menu, '.name').textContent, 'Design Check');
   assert.equal($(menu, '.email').textContent, 'design-check@example.test');
   assert.equal($(menu, '.team-name').textContent, 'Team example.test');
-  assert.deepEqual(rows(menu), ['photo', 'credits', 'manage-team', 'settings', 'switch-account', 'sign-out']);
+  assert.deepEqual(rows(menu), ['photo', 'credits', 'manage-team', 'settings', 'sign-out']);
   assert.equal($(menu, '.version').textContent, 'Version 2.3.0');
 });
 
@@ -65,13 +65,13 @@ test('preventDefault keeps the page from opening: the app opens it its own way',
   assert.deepEqual(assigned, []);
 });
 
-test('items without a page (Settings, Switch account, Sign out) only fire the event', () => {
+test('rows without a page (Settings, Sign out) only fire the event', () => {
   const menu = mount({ ...USER, 'account-url': 'https://account.binom.test' });
   const seen = [];
   menu.addEventListener('binom-account-menu-select', (e) => seen.push(e.detail));
-  for (const item of ['settings', 'switch-account', 'sign-out']) $(menu, `[data-item="${item}"]`).click();
-  assert.deepEqual(seen.map((d) => d.url), [null, null, null]);
-  assert.deepEqual(seen.map((d) => d.item), ['settings', 'switch-account', 'sign-out']);
+  for (const item of ['settings', 'sign-out']) $(menu, `[data-item="${item}"]`).click();
+  assert.deepEqual(seen.map((d) => d.url), [null, null]);
+  assert.deepEqual(seen.map((d) => d.item), ['settings', 'sign-out']);
 });
 
 test('the photo keeps the menu open and is disabled while it uploads', () => {
@@ -85,8 +85,8 @@ test('the photo keeps the menu open and is disabled while it uploads', () => {
 });
 
 test('hide drops built-in items, label-* renames them', () => {
-  const menu = mount({ ...USER, ...TEAM, hide: 'switch-account photo', 'label-sign-out': 'Выйти' });
-  assert.deepEqual(rows(menu), ['manage-team', 'settings', 'sign-out']);
+  const menu = mount({ ...USER, ...TEAM, hide: 'settings photo', 'label-sign-out': 'Выйти' });
+  assert.deepEqual(rows(menu), ['manage-team', 'sign-out']);
   assert.equal($(menu, '[data-item="sign-out"] .label').textContent, 'Выйти');
 });
 
@@ -104,7 +104,7 @@ test('Escape closes the menu, arrows move through every row including the app it
   const menu = mount({ ...USER, ...TEAM }, '<button id="own">Own</button>');
   menu.open();
   assert.deepEqual(menu.items().map((el) => el.dataset?.item ?? el.id), [
-    'photo', 'manage-team', 'settings', 'own', 'switch-account', 'sign-out',
+    'photo', 'manage-team', 'settings', 'own', 'sign-out',
   ]);
   document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' }));
   assert.equal(menu.isOpen, false);
@@ -118,13 +118,20 @@ test('a press outside closes the menu', () => {
 });
 
 test('badge-<id> shows a count on a built-in row, 99+ above 99, with its spoken text', () => {
-  const menu = mount({ ...USER, 'badge-switch-account': '3', 'badge-switch-account-label': '3 unread in other teams' });
-  const badge = $(menu, '[data-item="switch-account"] .count');
+  const menu = mount({ ...USER, 'badge-settings': '3', 'badge-settings-label': '3 new' });
+  const badge = $(menu, '[data-item="settings"] .count');
   assert.equal(badge.querySelector('[aria-hidden]').textContent, '3');
-  assert.equal(badge.querySelector('.sr').textContent, '3 unread in other teams');
-  menu.setAttribute('badge-switch-account', '120');
-  menu.setAttribute('badge-switch-account-muted', '');
-  assert.equal($(menu, '[data-item="switch-account"] .count--muted [aria-hidden]').textContent, '99+');
-  menu.setAttribute('badge-switch-account', '0');
-  assert.equal($(menu, '[data-item="switch-account"] .count'), null);
+  assert.equal(badge.querySelector('.sr').textContent, '3 new');
+  menu.setAttribute('badge-settings', '120');
+  menu.setAttribute('badge-settings-muted', '');
+  assert.equal($(menu, '[data-item="settings"] .count--muted [aria-hidden]').textContent, '99+');
+  menu.setAttribute('badge-settings', '0');
+  assert.equal($(menu, '[data-item="settings"] .count'), null);
+});
+
+test('a team logo that does not load is dropped, the name stays', () => {
+  const menu = mount({ ...USER, ...TEAM, 'team-logo': 'https://img.test/missing.png' });
+  $(menu, '.team-logo').dispatchEvent(new Event('error'));
+  assert.equal($(menu, '.team-logo'), null);
+  assert.equal($(menu, '.team-name').textContent, 'Team example.test');
 });

@@ -2,10 +2,24 @@
 
 ## 0.1.0 — 2026-11-11
 
-First version, from Chat's user menu.
+First version, built from Chat's header.
 
-- `<binom-account-menu>`: profile card (photo with a camera badge, name, email, team), credits (a click opens Billing for those who may pay), Manage team, Settings, Switch account, Sign out, version; the app's own items in two slots.
-- Binom Account links built in (`account-url`, `team-id`); `binom-account-menu-select` lets the app open them its own way.
-- A bottom sheet under 800px; keyboard navigation; the @binom/ui tokens for the look, light and dark.
-- `badge-<id>`: a count on Manage team, Settings or Switch account (Chat: unread messages of other teams).
-- `@binom/account-menu/react`: the typed `AccountMenu` wrapper.
+- `<binom-account-menu>`, the account menu at the right of the header, has:
+  - the profile card: photo with a camera badge, name, email and team (a team logo that fails to load is dropped);
+  - credits: for those who may pay, a click opens Billing;
+  - Manage team, Settings and Sign out;
+  - the app's own rows, in two slots;
+  - the app's version;
+  - `badge-<id>` counts.
+- `<binom-team-switcher>`, the open team beside the app's name, shows:
+  - the user's teams, with their role and unread count, and a ✓ on the open team;
+  - the other teams' unread total on its button;
+  - **Create team**, which opens Binom Account;
+  - a `compact` look for a phone.
+- Both elements:
+  - build the Binom Account links themselves; the `-select` events can be cancelled, so the app can open those links its own way;
+  - turn into a bottom sheet under 800px;
+  - support keyboard navigation and fire open and close events;
+  - take their look, light and dark, from the `@binom/ui` tokens.
+- `@binom/account-menu/react`: the typed `AccountMenu` and `TeamSwitcher` wrappers, with `ref` and `onOpenChange`.
+- `docs/INTEGRATION.md`: the full contract and a checklist for adding the menus to an app.

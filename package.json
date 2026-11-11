@@ -1,28 +1,38 @@
 {
   "name": "@binom/account-menu",
   "version": "0.1.0",
-  "description": "The Binom user menu for the right corner of every Binom app: profile, credits, Manage team, Settings, Switch account, Sign out, the app's own items and version.",
+  "description": "The Binom header menus for every Binom app: the account menu on the right (profile, credits, Manage team, Settings, Sign out, the app's own rows, version) and the team switcher beside the app's name.",
   "type": "module",
   "private": false,
   "license": "MIT",
   "repository": "github:binom-com/account-menu",
   "exports": {
     ".": {
-      "types": "./src/account-menu.d.ts",
-      "default": "./src/account-menu.js"
+      "types": "./src/index.d.ts",
+      "default": "./src/index.js"
     },
     "./react": {
       "types": "./src/react.d.ts",
       "default": "./src/react.js"
     },
-    "./account-menu.js": "./src/account-menu.js",
+    "./account-menu.js": {
+      "types": "./src/index.d.ts",
+      "default": "./src/account-menu.js"
+    },
+    "./team-switcher.js": {
+      "types": "./src/index.d.ts",
+      "default": "./src/team-switcher.js"
+    },
     "./package.json": "./package.json"
   },
   "files": [
-    "src"
+    "src",
+    "docs"
   ],
   "sideEffects": [
+    "./src/index.js",
     "./src/account-menu.js",
+    "./src/team-switcher.js",
     "./src/react.js"
   ],
   "scripts": {
