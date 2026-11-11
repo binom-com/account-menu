@@ -10,6 +10,18 @@ function creditsAttribute(credits) {
   return credits === null || credits === undefined ? undefined : String(credits);
 }
 
+/** `badges`: `{ 'switch-account': { count, isMuted, label } }` → `badge-switch-account`, `-muted`, `-label`. */
+function badgeAttributes(badges) {
+  const attributes = {};
+  for (const [id, badge] of Object.entries(badges ?? {})) {
+    if (!badge) continue;
+    attributes[`badge-${id}`] = String(badge.count);
+    if (badge.isMuted) attributes[`badge-${id}-muted`] = '';
+    if (badge.label) attributes[`badge-${id}-label`] = badge.label;
+  }
+  return attributes;
+}
+
 function labelAttributes(labels) {
   const attributes = {};
   for (const [id, text] of Object.entries(labels ?? {})) attributes[`label-${id}`] = text;
@@ -29,6 +41,7 @@ export function AccountMenu({
   version,
   hide,
   labels,
+  badges,
   size,
   isPhotoBusy,
   onSelect,
@@ -66,6 +79,7 @@ export function AccountMenu({
       size: size === undefined ? undefined : String(size),
       'photo-busy': isPhotoBusy ? '' : undefined,
       ...labelAttributes(labels),
+      ...badgeAttributes(badges),
     },
     children,
   );

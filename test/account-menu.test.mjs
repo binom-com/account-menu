@@ -116,3 +116,15 @@ test('a press outside closes the menu', () => {
   document.body.dispatchEvent(new PointerEvent('pointerdown', { bubbles: true, composed: true }));
   assert.equal(menu.isOpen, false);
 });
+
+test('badge-<id> shows a count on a built-in row, 99+ above 99, with its spoken text', () => {
+  const menu = mount({ ...USER, 'badge-switch-account': '3', 'badge-switch-account-label': '3 unread in other teams' });
+  const badge = $(menu, '[data-item="switch-account"] .count');
+  assert.equal(badge.querySelector('[aria-hidden]').textContent, '3');
+  assert.equal(badge.querySelector('.sr').textContent, '3 unread in other teams');
+  menu.setAttribute('badge-switch-account', '120');
+  menu.setAttribute('badge-switch-account-muted', '');
+  assert.equal($(menu, '[data-item="switch-account"] .count--muted [aria-hidden]').textContent, '99+');
+  menu.setAttribute('badge-switch-account', '0');
+  assert.equal($(menu, '[data-item="switch-account"] .count'), null);
+});

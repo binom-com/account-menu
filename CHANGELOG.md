@@ -7,4 +7,5 @@ First version, from Chat's user menu.
 - `<binom-account-menu>`: profile card (photo with a camera badge, name, email, team), credits (a click opens Billing for those who may pay), Manage team, Settings, Switch account, Sign out, version; the app's own items in two slots.
 - Binom Account links built in (`account-url`, `team-id`); `binom-account-menu-select` lets the app open them its own way.
 - A bottom sheet under 800px; keyboard navigation; the @binom/ui tokens for the look, light and dark.
+- `badge-<id>`: a count on Manage team, Settings or Switch account (Chat: unread messages of other teams).
 - `@binom/account-menu/react`: the typed `AccountMenu` wrapper.

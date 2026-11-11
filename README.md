@@ -88,6 +88,7 @@ import { AccountMenu } from '@binom/account-menu/react';
 | `version` | `Version X` at the bottom. |
 | `hide` | Built-in rows to drop, by id, separated by spaces: `hide="switch-account photo"`. |
 | `label-<id>` | Your own text for a row: `label-sign-out="Выйти"`. Also `label-unlimited`, `label-top-up`, `label-version`, `label-menu`. |
+| `badge-<id>` | A count after the label of `manage-team`, `settings` or `switch-account` (99+ above 99), e.g. unread messages of other teams. `badge-<id>-muted` greys it; `badge-<id>-label` is its text for screen readers. React: `badges={{ 'switch-account': { count, isMuted, label } }}`. |
 | `size` | The header avatar in px (default 32; the tap target stays at least `--tap-size`). |
 | `photo-busy` | A new photo is uploading: the photo is disabled. |
 

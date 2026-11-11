@@ -26,6 +26,9 @@
   var SHEET_QUERY = '(max-width: 799px)';
   var MAX_INITIALS = 2;
   var DEFAULT_SIZE = 32;
+  /** Above this a badge shows `99+`. */
+  var MAX_BADGE = 99;
+  var BADGED = ['manage-team', 'settings', 'switch-account'];
 
   /** The built-in items, top to bottom; their ids are the `item` of the select event, `hide` and `label-*`. */
   var LABELS = {
@@ -146,6 +149,9 @@
     '.item:hover .top-up,.item:focus-visible .top-up{color:var(--color-text)}',
     '.spinner{display:inline-block;width:14px;height:14px;border-radius:50%;border:2px solid var(--color-border);border-top-color:var(--color-muted);animation:bam-spin .8s linear infinite;vertical-align:middle}',
     '@keyframes bam-spin{to{transform:rotate(360deg)}}',
+    '.count{flex:none;box-sizing:border-box;min-width:20px;height:20px;padding:0 6px;border-radius:var(--radius-pill);background:var(--color-accent);color:var(--color-on-accent);font-size:.7rem;font-weight:600;line-height:20px;text-align:center;font-variant-numeric:tabular-nums}',
+    '.count--muted{background:color-mix(in srgb,var(--color-muted) 70%,#fff)}',
+    '.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}',
     '.version{padding:6px 10px 2px;font-size:11px;color:var(--color-muted)}',
     // On a phone: a sheet risen from the bottom over the dimmed page, with a grabber on top.
     '.backdrop{position:fixed;inset:0;z-index:2147482999;background:var(--color-backdrop);opacity:0;visibility:hidden;transition:opacity var(--motion-base) var(--ease-out),visibility 0s var(--motion-base)}',
@@ -190,7 +196,8 @@
   BinomAccountMenu.observedAttributes = [
     'user-name', 'user-email', 'user-photo', 'user-id', 'team-name', 'team-logo', 'team-id', 'credits', 'can-top-up',
     'account-url', 'version', 'hide', 'size', 'photo-busy',
-  ].concat(Object.keys(LABELS).map(function (id) { return 'label-' + id; }));
+  ].concat(Object.keys(LABELS).map(function (id) { return 'label-' + id; }))
+    .concat(BADGED.reduce(function (all, id) { return all.concat(['badge-' + id, 'badge-' + id + '-muted', 'badge-' + id + '-label']); }, []));
 
   BinomAccountMenu.prototype.connectedCallback = function () {
     // delegatesFocus: focus() on the element (an app's dialog handing focus back) lands on the button inside
@@ -271,10 +278,20 @@
       start + '<span class="top-up" aria-hidden="true">' + icon('plus', 16) + '</span></button>';
   };
 
+  /** `badge-<id>`: a count after the label (e.g. unread messages of other teams); `-muted` greys it, `-label` reads it. */
+  BinomAccountMenu.prototype.badgeHtml = function (id) {
+    var count = Number(this.getAttribute('badge-' + id));
+    if (!(count > 0)) return '';
+    var spoken = this.getAttribute('badge-' + id + '-label');
+    var muted = this.hasAttribute('badge-' + id + '-muted') ? ' count--muted' : '';
+    return '<span class="count' + muted + '"><span aria-hidden="true">' + (count > MAX_BADGE ? MAX_BADGE + '+' : count) + '</span>' +
+      '<span class="sr">' + esc(spoken || String(count)) + '</span></span>';
+  };
+
   BinomAccountMenu.prototype.itemHtml = function (id, iconName) {
     if (this.isHidden(id)) return '';
     return '<button type="button" class="item" role="menuitem" data-item="' + id + '">' + icon(iconName, 18) +
-      '<span class="label">' + esc(this.label(id)) + '</span></button>';
+      '<span class="label">' + esc(this.label(id)) + '</span>' + this.badgeHtml(id) + '</button>';
   };
 
   BinomAccountMenu.prototype.render = function () {

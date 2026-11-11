@@ -16,6 +16,8 @@ export interface AccountMenuProps {
   version?: string | null;
   hide?: AccountMenuItem[];
   labels?: Partial<Record<AccountMenuLabel, string>>;
+  /** A count after a built-in row's label, e.g. unread messages of other teams on Switch account. */
+  badges?: Partial<Record<'manage-team' | 'settings' | 'switch-account', { count: number; isMuted?: boolean; label?: string } | null>>;
   /** The avatar's size in the header, px (default 32). */
   size?: number;
   /** A new photo is being uploaded: the photo is disabled. */
