@@ -323,6 +323,9 @@
     this.$menu = this.shadowRoot.querySelector('.menu');
     this.$backdrop = this.shadowRoot.querySelector('.backdrop');
     this.$trigger.addEventListener('click', function () { self.toggle(); });
+    // A team logo that does not load leaves just the name, not a broken image.
+    var $logo = this.shadowRoot.querySelector('.team-logo');
+    if ($logo) $logo.addEventListener('error', function () { $logo.remove(); });
     this.$backdrop.addEventListener('click', function () { self.close(true); });
     this.shadowRoot.querySelectorAll('[data-item]').forEach(function (el) {
       el.addEventListener('click', function () { self.select(el.getAttribute('data-item')); });
